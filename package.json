@@ -12,6 +12,9 @@
     "test:admin": "playwright test src/tests/admin",
     "test:dashboard": "playwright test src/tests/dashboard",
     "test:pim": "playwright test src/tests/pim",
+    "test:a11y": "playwright test src/tests/accessibility",
+    "test:perf": "playwright test src/tests/performance",
+    "test:network": "playwright test src/tests/network",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
@@ -23,12 +26,16 @@
     "playwright",
     "automation",
     "testing",
-    "sdet"
+    "sdet",
+    "accessibility",
+    "performance"
   ],
-  "author": "",
+  "author": "Ajeet Yadav",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@faker-js/faker": "^10.3.0",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.4.0",
     "typescript": "^7.0.2"

@@ -6,7 +6,7 @@ import { Routes } from '@constants/routes';
 
 /**
  * PimPage
- * Page Object encapsulating Employee Management (PIM) directory and employee list actions.
+ * Page Object encapsulating Employee Management (PIM) directory and search operations.
  */
 export class PimPage extends BasePage {
   readonly topbar: TopBarComponent;
@@ -15,9 +15,8 @@ export class PimPage extends BasePage {
   readonly employeeIdInput: Locator;
   readonly searchButton: Locator;
   readonly resetButton: Locator;
-  readonly addEmployeeButton: Locator;
+  readonly tableContainer: Locator;
   readonly tableRows: Locator;
-  readonly recordsFoundLabel: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -27,41 +26,53 @@ export class PimPage extends BasePage {
     this.employeeIdInput = page.locator('.oxd-input-group:has-text("Employee Id") input');
     this.searchButton = page.locator('button[type="submit"]:has-text("Search")');
     this.resetButton = page.locator('button[type="button"]:has-text("Reset")');
-    this.addEmployeeButton = page.locator('button:has-text("Add")');
+    this.tableContainer = page.locator('.oxd-table');
     this.tableRows = page.locator('.oxd-table-body .oxd-table-row');
-    this.recordsFoundLabel = page.locator('.orangehrm-horizontal-padding span');
   }
 
   /**
-   * Navigate directly to PIM employee list
+   * Navigate directly to the PIM Employee List page
    */
   async navigate(): Promise<void> {
     await this.goto(Routes.PIM.VIEW_EMPLOYEE_LIST);
-    await this.waitForPageLoad();
+    await this.waitForPageLoad('domcontentloaded');
   }
 
   /**
-   * Search for an employee by name
+   * Search for employee records by ID
+   */
+  async searchById(id: string): Promise<void> {
+    await this.employeeIdInput.waitFor({ state: 'visible' });
+    await this.employeeIdInput.fill(id);
+    await this.searchButton.click();
+    await this.waitForPageLoad('domcontentloaded');
+  }
+
+  /**
+   * Search for employee records by name
    */
   async searchByName(name: string): Promise<void> {
+    await this.employeeNameInput.waitFor({ state: 'visible' });
     await this.employeeNameInput.fill(name);
     await this.searchButton.click();
-    await this.waitForPageLoad();
+    await this.waitForPageLoad('domcontentloaded');
   }
 
   /**
-   * Returns count of matching rows displayed in the employee table
+   * Reset the search form filter
+   */
+  async resetSearch(): Promise<void> {
+    await this.resetButton.waitFor({ state: 'visible' });
+    await this.resetButton.click();
+    await this.waitForPageLoad('domcontentloaded');
+  }
+
+  /**
+   * Returns count of employee records displayed in the table (resilient against empty states)
    */
   async getRowCount(): Promise<number> {
-    await this.tableRows.first().waitFor({ state: 'visible' });
+    await this.tableContainer.waitFor({ state: 'visible' });
+    await this.tableRows.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     return await this.tableRows.count();
-  }
-
-  /**
-   * Verify if PIM page header is visible
-   */
-  async isLoaded(): Promise<boolean> {
-    const title = await this.topbar.getHeaderTitle();
-    return title.includes('PIM');
   }
 }
