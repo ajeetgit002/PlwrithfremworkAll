@@ -1,6 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
+import dotenv from 'dotenv';
 import { AppConfig } from './src/config/app.config';
+
+// Load environment variables from .env if present
+dotenv.config();
 
 const authStatePath = path.resolve(process.cwd(), 'playwright/.auth/user.json');
 
