@@ -14,6 +14,7 @@ import { PlaywrightUtils } from '@utils/PlaywrightUtils';
 import { AiHealer } from '@utils/ai-healer';
 import { AiDiagnostics } from '@utils/ai-diagnostics';
 import { AiFuzzer } from '@utils/ai-fuzzer';
+import { GeminiClient } from '@utils/gemini-client';
 import { Logger } from '@utils/logger';
 
 /**
@@ -42,6 +43,7 @@ export interface CustomFixtures {
   aiHealer: AiHealer;
   aiDiagnostics: typeof AiDiagnostics;
   aiFuzzer: AiFuzzer;
+  gemini: GeminiClient;
 
   // Auto Fixture
   testContext: void;
@@ -109,6 +111,10 @@ export const test = base.extend<CustomFixtures>({
 
   aiFuzzer: async ({}, use) => {
     await use(new AiFuzzer());
+  },
+
+  gemini: async ({}, use) => {
+    await use(new GeminiClient());
   },
 
   // Auto fixture for scenario execution lifecycle logging & AI Root-Cause Failure Auto-Triage

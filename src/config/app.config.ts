@@ -13,6 +13,11 @@ export const AppConfig = {
   baseURL: process.env.BASE_URL ?? 'https://opensource-demo.orangehrmlive.com',
 
   /**
+   * Google Gemini GenAI API Key (Optional: for cloud LLM failure diagnosis & self-healing)
+   */
+  geminiApiKey: process.env.GEMINI_API_KEY ?? '',
+
+  /**
    * Application Credentials (Change here to update usernames & passwords)
    */
   credentials: {
