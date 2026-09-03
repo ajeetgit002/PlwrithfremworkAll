@@ -1,13 +1,14 @@
 {
   "name": "auto_suit",
   "version": "1.0.0",
-  "description": "Senior SDET Playwright automation framework",
+  "description": "Senior SDET Playwright automation framework with AI capabilities",
   "private": true,
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
+    "test:ai": "playwright test src/tests/ai",
     "test:auth": "playwright test src/tests/auth",
     "test:admin": "playwright test src/tests/admin",
     "test:dashboard": "playwright test src/tests/dashboard",
@@ -27,6 +28,9 @@
     "automation",
     "testing",
     "sdet",
+    "ai",
+    "agentic",
+    "self-healing",
     "accessibility",
     "performance"
   ],

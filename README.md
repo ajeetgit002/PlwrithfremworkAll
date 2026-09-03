@@ -1,6 +1,26 @@
-# Enterprise Playwright Test Automation Framework
+# Enterprise Playwright + AI-Driven Test Automation Framework
 
-An enterprise-grade, scalable, and maintainable end-to-end test automation framework built with **Playwright**, **TypeScript**, and modern **Senior SDET** architectural design patterns.
+An enterprise-grade, scalable, and self-healing end-to-end test automation framework built with **Playwright**, **TypeScript**, **Agentic AI testing engines**, and modern **Senior SDET** architectural design patterns.
+
+---
+
+## 🤖 Next-Gen AI & Agentic Capabilities
+
+This framework features built-in AI testing engines to deliver zero-maintenance, self-healing test automation:
+
+### 1. 🧠 AI Self-Healing Locators (`src/utils/ai-healer.ts`)
+* **Dynamic Recovery**: When a primary DOM selector changes (e.g., ID rename or class refactor in a UI deployment), the **AI Healer** intercepts the failure and scans the live DOM using semantic heuristics (visual text, ARIA roles, input placeholders, group labels).
+* **Confidence Scoring**: Computes similarity confidence scores and repairs the interaction at runtime without breaking test runs or failing CI/CD builds.
+* **Auto-Reporting**: Logs the healed selector and confidence score for engineers to review.
+
+### 2. 🔍 AI Root-Cause Failure Diagnostic Agent (`src/utils/ai-diagnostics.ts`)
+* **Auto-Triage**: When an assertion or network error occurs, the AI Diagnostic engine inspects the stack trace, error message, URL state, and console logs.
+* **Instant Diagnostic Cards**: Classifies failures into clear categories (`LOCATOR_BREAKAGE`, `API_5XX_SERVER_ERROR`, `AUTHENTICATION_EXPIRED`, `UI_ASSERTION_MISMATCH`), explains the root cause in plain English, and provides concrete fix recommendations.
+
+### 3. 🛡️ AI Security, Unicode & Edge-Case Fuzzing (`src/utils/ai-fuzzer.ts`)
+* **Security Payloads**: Injects dynamic Cross-Site Scripting (XSS) and SQL Injection (SQLi) vectors into input forms to test sanitization resilience.
+* **Multi-Language & Unicode**: Tests form resilience against Arabic RTL, Japanese Kanji, Hindi Devnagari, European accents, and zero-width spaces.
+* **Boundary Lengths**: Fuzzes input fields with single character, max 255-char, and extreme 4096-char payloads.
 
 ---
 
@@ -17,7 +37,7 @@ The framework employs a **Component-Driven Page Object Model (POM)** with clean 
                                              ▼
                                ┌───────────────────────────┐
                                │ Main Test Suites (chromium)│
-                               │ auth / admin / dash / pim │
+                               │  auth / admin / ai / pim  │
                                └─────────────┬─────────────┘
                                              │ (injects)
                                ▼─────────────┴─────────────▼
@@ -26,132 +46,38 @@ The framework employs a **Component-Driven Page Object Model (POM)** with clean 
                                │  Auto Context & Injection │
                                └─────────────┬─────────────┘
                                              │
-                       ┌─────────────────────┴─────────────────────┐
-                       ▼                                           ▼
-          ┌───────────────────────────┐               ┌───────────────────────────┐
-          │     Pages (pages/*)       │               │ Components (components/*) │
-          │ Login, Admin, Dash, PIM   │◄──────────────┤    TopBar, Sidebar        │
-          └────────────┬──────────────┘ (reusable in) └───────────────────────────┘
-                       │
-                       ▼
-          ┌───────────────────────────┐
-          │    Core & Config Layer    │
-          │ app.config / test-data    │
-          └───────────────────────────┘
+      ┌──────────────────────────────────────┼──────────────────────────────────────┐
+      ▼                                      ▼                                      ▼
+┌───────────┐                          ┌───────────┐                          ┌───────────┐
+│   Pages   │                          │Components │                          │AI Engines │
+│Admin, Dash│◄─────────────────────────┤  TopBar,  │                          │AiHealer,  │
+│Login, PIM │     (composed within)    │  Sidebar  │                          │AiFuzzer   │
+└─────┬─────┘                          └───────────┘                          └─────┬─────┘
+      │                                                                             │
+      └──────────────────────────────────────┬──────────────────────────────────────┘
+                                             ▼
+                               ┌───────────────────────────┐
+                               │    Core & Config Layer    │
+                               │ app.config / test-data    │
+                               └───────────────────────────┘
 ```
 
 ---
 
-## 🧩 Reusable & Dynamic Core Classes (Deep-Dive)
+## 🧩 Core Classes & Modules
 
-Every class in this framework is designed to be **dynamic and non-static**, receiving live browser instances and parameters at runtime rather than relying on static or hardcoded logic.
-
-### 1. `BasePage` (`src/pages/base.page.ts`)
-The abstract foundation for all Page Objects.
-* **Dynamic Capabilities**:
-  * Manages the Playwright `Page` instance dynamically passed from test fixtures.
-  * Navigates to any dynamic relative endpoint using `goto(path)`.
-  * Handles dynamic load-state waiting (`load`, `domcontentloaded`, `networkidle`).
-  * Provides dynamic full-page screenshot capturing with custom names.
-
-### 2. `TopBarComponent` (`src/components/topbar.component.ts`)
-Reusable UI component encapsulating the global header bar across all authenticated pages.
-* **Dynamic Capabilities**:
-  * Dynamically reads the current active screen title via `getHeaderTitle()`.
-  * Extracts the currently logged-in user profile name at runtime via `getUserDisplayName()`.
-  * Manages dynamic user dropdown expansion and logout operations via `logout()`.
-
-### 3. `SidebarComponent` (`src/components/sidebar.component.ts`)
-Reusable UI component encapsulating the collapsible left navigation menu panel.
-* **Dynamic Capabilities**:
-  * `navigateTo(menuName)`: Accepts any module name (`Admin`, `PIM`, `Leave`, `Time`, etc.) dynamically and navigates without needing separate methods per link.
-  * `searchMenu(term)`: Performs dynamic real-time filtering in the sidebar search input.
-  * `getVisibleMenuItems()`: Dynamically extracts all visible navigation labels currently rendered.
-
-### 4. `LoginPage` (`src/pages/login.page.ts`)
-Page Object encapsulating the authentication screen.
-* **Dynamic Capabilities**:
-  * `login(username, password)`: Accepts arbitrary credentials dynamically.
-  * `loginAs(user)`: Accepts strongly-typed user credential objects.
-  * `getErrorMessage()`: Dynamically waits for and extracts error alert banner text.
-  * Exposes locators as public `readonly` properties for clean assertions in tests.
-
-### 5. `AdminPage` (`src/pages/admin.page.ts`)
-Page Object encapsulating the Admin System User Management module.
-* **Dynamic Capabilities**:
-  * `searchUser(username)`: Dynamically searches system users by username.
-  * `resetSearch()`: Resets filter form and reloads table records.
-  * `getUserCount()`: Resiliently returns count of system users matching filter.
-
-### 6. `DashboardPage` (`src/pages/dashboard.page.ts`)
-Page Object encapsulating dashboard widgets and overview metrics.
-* **Dynamic Capabilities**:
-  * Integrates `TopBarComponent` and `SidebarComponent` via composition (`this.topbar`, `this.sidebar`).
-  * `getWidgetCount()`: Dynamically evaluates the number of widgets and cards rendered for the user.
-
-### 7. `PimPage` (`src/pages/pim.page.ts`)
-Page Object encapsulating Employee Management (PIM) directory and search operations.
-* **Dynamic Capabilities**:
-  * `searchByName(name)`: Dynamically searches for any employee record.
-  * `getRowCount()`: Dynamically evaluates the number of rows returned in the employee data table.
-
-### 8. `ApiClient` (`src/utils/api-client.ts`)
-Reusable HTTP client wrapper around Playwright `APIRequestContext`.
-* **Dynamic Capabilities**:
-  * Provides `get()`, `post()`, `put()`, `delete()` with structured step logging and error handling.
-  * Enables fast API-level data seeding, health checks, and response assertions.
-
-### 9. `PlaywrightUtils` (`src/utils/PlaywrightUtils.ts`)
-General-purpose dynamic web action and locator utility.
-* **Dynamic Capabilities**:
-  * `safeClick(locator)`: Automatically scrolls into view and checks visibility before clicking any dynamic locator.
-  * `clearAndFill(locator, value)`: Clears and populates input fields dynamically.
-  * `waitForApiResponse(pattern)`: Dynamically intercepts and validates network API responses.
-
-### 10. `base-test` Custom Fixture Engine (`src/fixtures/base-test.ts`)
-Dynamic dependency injection engine.
-* **Dynamic Capabilities**:
-  * Instantiates and injects all page objects, components, and `apiClient` on-demand per test worker.
-  * Eliminates manual `new PageObject(page)` boilerplate across test files.
-  * Automatically logs scenario startup and completion timestamps.
-
----
-
-## 📁 Directory Structure
-
-```text
-src/
-├── config/              # Centralized configuration (URLs, Credentials, Timeouts)
-│   ├── app.config.ts    # Single unified file to change URL & credentials
-│   └── environment.ts
-├── constants/           # URL Routes and Navigation string enums
-│   ├── routes.ts
-│   └── navigation.ts
-├── components/          # Reusable shared UI widgets (Sidebar, TopBar, Modals, Tables)
-│   ├── sidebar.component.ts
-│   └── topbar.component.ts
-├── pages/               # Feature Page Objects inheriting from BasePage
-│   ├── base.page.ts
-│   ├── login.page.ts
-│   ├── admin.page.ts
-│   ├── dashboard.page.ts
-│   └── pim.page.ts
-├── test-data/           # Strongly-typed test datasets and user factories
-│   └── users.data.ts
-├── fixtures/            # Custom Playwright fixtures for zero-boilerplate tests
-│   └── base-test.ts
-├── utils/               # Structured Logger, Safe WebActions, and ApiClient
-│   ├── logger.ts
-│   ├── api-client.ts
-│   └── PlaywrightUtils.ts
-├── tests/               # Feature-organized test suites
-│   ├── auth.setup.ts    # Official Playwright Project Dependency auth setup
-│   ├── auth/            # Login and session verification specs
-│   ├── admin/           # Admin system user management specs
-│   ├── dashboard/       # Dashboard layout and navigation specs
-│   └── pim/             # Employee management module specs
-└── playwright.config.ts # Playwright project dependency config
-```
+| Class / Utility | Location | Responsibility |
+| :--- | :--- | :--- |
+| **`BasePage`** | `src/pages/base.page.ts` | Abstract foundation for all Page Objects (navigation, load waits, screenshots). |
+| **`AiHealer`** | `src/utils/ai-healer.ts` | AI semantic DOM matching and self-healing locator recovery engine. |
+| **`AiDiagnostics`** | `src/utils/ai-diagnostics.ts` | Root-cause failure analyzer and CI/CD diagnostic card generator. |
+| **`AiFuzzer`** | `src/utils/ai-fuzzer.ts` | Dynamic XSS, SQLi, Unicode, and boundary length fuzzing payload generator. |
+| **`AccessibilityAuditor`** | `src/utils/accessibility.ts` | Automated WCAG 2.1 AA accessibility auditing powered by `@axe-core/playwright`. |
+| **`PerformanceAuditor`** | `src/utils/performance.ts` | Live browser Navigation Timings (TTFB, DOM Load, Page Load) and performance budgets. |
+| **`NetworkMocker`** | `src/utils/network-mocker.ts` | HTTP route interception, fault injection (500 errors), and mock API payloads. |
+| **`TestDataGenerator`** | `src/utils/data-generator.ts` | Synthetic, collision-free test datasets powered by `@faker-js/faker`. |
+| **`ApiClient`** | `src/utils/api-client.ts` | Strongly-typed HTTP REST client for backend data seeding and API assertions. |
+| **`PlaywrightUtils`** | `src/utils/PlaywrightUtils.ts` | Safe element actions, visual regression snapshots, and wait utilities. |
 
 ---
 
@@ -169,11 +95,19 @@ npm run test:smoke
 # Run Full Regression Suite (@regression tagged tests)
 npm run test:regression
 
+# Run AI & Agentic Test Suites
+npm run test:ai         # Self-healing locators & AI fuzzing tests
+
+# Run Quality & Compliance Audits
+npm run test:a11y       # WCAG 2.1 AA Accessibility audits
+npm run test:perf       # Web Performance & Core Web Vitals
+npm run test:network    # Network Mocking & Fault Injection
+
 # Run Specific Feature Modules
-npm run test:auth       # Run Authentication tests
-npm run test:admin      # Run Admin module tests
-npm run test:dashboard  # Run Dashboard tests
-npm run test:pim        # Run PIM employee tests
+npm run test:auth       # Authentication tests
+npm run test:admin      # Admin module tests
+npm run test:dashboard  # Dashboard tests
+npm run test:pim        # PIM employee tests
 
 # Interactive & Debug Modes
 npm run test:ui         # Playwright Interactive UI Mode
@@ -219,19 +153,14 @@ export const AppConfig = {
 };
 ```
 
-You can also override these on the fly using environment variables in terminal or CI/CD pipelines:
-```bash
-# Windows PowerShell
-$env:BASE_URL="https://your-staging-url.com"; $env:ADMIN_USER="MyUser"; $env:ADMIN_PASSWORD="MyPassword"; npm test
-```
-
 ---
 
 ## 🔄 Continuous Integration (CI/CD)
 
-The framework includes a ready-to-run GitHub Actions workflow (`.github/workflows/playwright.yml`) that:
+The framework includes an automated GitHub Actions workflow (`.github/workflows/playwright.yml`) that:
 1. Automatically triggers on every `push` and `pull_request` to `main`.
 2. Sets up Node.js 20 with npm caching.
 3. Installs Playwright Chromium browser binaries and system dependencies.
 4. Executes the full test suite in parallel.
-5. Publishes HTML Test Reports and test failure artifacts (screenshots, traces, videos) automatically.
+5. Publishes HTML Test Reports and test failure artifacts (screenshots, traces, videos).
+6. Sends automated status cards to **Slack / MS Teams** channels.

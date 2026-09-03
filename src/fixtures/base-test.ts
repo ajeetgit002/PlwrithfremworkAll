@@ -11,6 +11,9 @@ import { AccessibilityAuditor } from '@utils/accessibility';
 import { NetworkMocker } from '@utils/network-mocker';
 import { PerformanceAuditor } from '@utils/performance';
 import { PlaywrightUtils } from '@utils/PlaywrightUtils';
+import { AiHealer } from '@utils/ai-healer';
+import { AiDiagnostics } from '@utils/ai-diagnostics';
+import { AiFuzzer } from '@utils/ai-fuzzer';
 import { Logger } from '@utils/logger';
 
 /**
@@ -35,12 +38,17 @@ export interface CustomFixtures {
   performance: PerformanceAuditor;
   utils: PlaywrightUtils;
 
+  // AI & Agentic Testing Engines
+  aiHealer: AiHealer;
+  aiDiagnostics: typeof AiDiagnostics;
+  aiFuzzer: AiFuzzer;
+
   // Auto Fixture
   testContext: void;
 }
 
 /**
- * Custom test runner with dependency injection for Pages, Components, and Advanced Testing Engines
+ * Custom test runner with dependency injection for Pages, Components, and AI Engines
  */
 export const test = base.extend<CustomFixtures>({
   loginPage: async ({ page }, use) => {
@@ -91,12 +99,29 @@ export const test = base.extend<CustomFixtures>({
     await use(new PlaywrightUtils(page));
   },
 
-  // Auto fixture for scenario execution lifecycle logging
+  aiHealer: async ({ page }, use) => {
+    await use(new AiHealer(page));
+  },
+
+  aiDiagnostics: async ({}, use) => {
+    await use(AiDiagnostics);
+  },
+
+  aiFuzzer: async ({}, use) => {
+    await use(new AiFuzzer());
+  },
+
+  // Auto fixture for scenario execution lifecycle logging & AI Root-Cause Failure Auto-Triage
   testContext: [
     async ({}, use, testInfo) => {
       Logger.testStart(testInfo.title);
       await use();
-      Logger.testEnd(testInfo.title, testInfo.status === 'passed');
+      const isPassed = testInfo.status === 'passed';
+      Logger.testEnd(testInfo.title, isPassed);
+
+      if (!isPassed && testInfo.error) {
+        AiDiagnostics.diagnoseError(testInfo.error, testInfo);
+      }
     },
     { auto: true },
   ],
