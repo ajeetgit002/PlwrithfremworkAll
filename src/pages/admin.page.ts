@@ -14,10 +14,9 @@ export class AdminPage extends BasePage {
   readonly usernameSearchInput: Locator;
   readonly searchButton: Locator;
   readonly resetButton: Locator;
-  readonly addUserButton: Locator;
+  readonly addButton: Locator;
   readonly recordsTable: Locator;
   readonly tableRows: Locator;
-  readonly tableBody: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -26,9 +25,8 @@ export class AdminPage extends BasePage {
     this.usernameSearchInput = page.locator('.oxd-input-group:has-text("Username") input');
     this.searchButton = page.locator('button[type="submit"]:has-text("Search")');
     this.resetButton = page.locator('button[type="button"]:has-text("Reset")');
-    this.addUserButton = page.locator('button:has-text("Add")');
+    this.addButton = page.locator('button:has-text("Add")');
     this.recordsTable = page.locator('.oxd-table');
-    this.tableBody = page.locator('.oxd-table-body');
     this.tableRows = page.locator('.oxd-table-body .oxd-table-row');
   }
 
@@ -56,15 +54,15 @@ export class AdminPage extends BasePage {
   async resetSearch(): Promise<void> {
     await this.resetButton.waitFor({ state: 'visible' });
     await this.resetButton.click();
-    await this.waitForPageLoad('domcontentloaded');
+    await this.tableRows.first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   }
 
   /**
    * Returns count of user records displayed in the table (resilient against empty states)
    */
   async getUserCount(): Promise<number> {
-    await this.tableBody.waitFor({ state: 'visible' });
-    await this.tableRows.first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+    await this.recordsTable.waitFor({ state: 'visible' });
+    await this.tableRows.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     return await this.tableRows.count();
   }
 }

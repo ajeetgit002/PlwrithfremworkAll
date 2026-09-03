@@ -8,6 +8,8 @@
     "start": "node scripts/runner.js",
     "menu": "node scripts/runner.js",
     "test": "playwright test",
+    "test:web": "playwright test --grep @web",
+    "test:api": "playwright test --grep @api",
     "test:smoke": "playwright test --grep @smoke",
     "test:regression": "playwright test --grep @regression",
     "test:ai": "playwright test src/tests/ai",

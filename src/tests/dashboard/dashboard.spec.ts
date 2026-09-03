@@ -1,7 +1,7 @@
 import { test, expect } from '@fixtures/base-test';
 import { SidebarMenu } from '@constants/navigation';
 
-test.describe('Dashboard: Core Functionality & Layout @dashboard @regression', () => {
+test.describe('Dashboard: Core Functionality & Layout @dashboard @web @regression', () => {
   test.beforeEach(async ({ dashboardPage }) => {
     await dashboardPage.navigate();
   });
@@ -16,7 +16,6 @@ test.describe('Dashboard: Core Functionality & Layout @dashboard @regression', (
 
   test('should navigate to Admin module via sidebar', async ({ sidebar, topbar, page }) => {
     await sidebar.navigateTo(SidebarMenu.ADMIN);
-
     await expect(page).toHaveURL(/.*\/admin\//);
     const title = await topbar.getHeaderTitle();
     expect(title).toContain('Admin');
@@ -24,8 +23,8 @@ test.describe('Dashboard: Core Functionality & Layout @dashboard @regression', (
 
   test('should filter sidebar menu items with search box', async ({ sidebar }) => {
     await sidebar.searchMenu('PIM');
-    const visibleItems = await sidebar.getVisibleMenuItems();
-
-    expect(visibleItems.some((item) => item.includes('PIM'))).toBeTruthy();
+    const items = await sidebar.getVisibleMenuItems();
+    expect(items.length).toBeGreaterThanOrEqual(1);
+    expect(items.some((item) => item.includes('PIM'))).toBe(true);
   });
 });

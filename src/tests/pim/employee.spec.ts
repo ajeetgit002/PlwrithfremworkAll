@@ -1,7 +1,7 @@
 import { test, expect } from '@fixtures/base-test';
 import { SidebarMenu } from '@constants/navigation';
 
-test.describe('PIM: Employee Management Module @pim @regression', () => {
+test.describe('PIM: Employee Management Module @pim @web @regression', () => {
   test.beforeEach(async ({ sidebar, pimPage }) => {
     await pimPage.navigate();
   });
@@ -25,11 +25,10 @@ test.describe('PIM: Employee Management Module @pim @regression', () => {
 
   test('should search using dynamic synthetic employee dataset @smoke', async ({ pimPage, dataGenerator }) => {
     const employee = dataGenerator.generateEmployee();
-    expect(employee.firstName.length).toBeGreaterThan(0);
-    expect(employee.employeeId).toBeDefined();
+    expect(employee.employeeId.length).toBeGreaterThan(0);
 
-    // Dynamically search with generated data
-    await pimPage.searchByName(employee.firstName);
+    // Dynamically search by generated synthetic ID
+    await pimPage.searchById(employee.employeeId);
     const count = await pimPage.getRowCount();
     expect(count).toBeGreaterThanOrEqual(0);
   });

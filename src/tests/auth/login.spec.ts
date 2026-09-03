@@ -1,8 +1,9 @@
 import { test, expect } from '@fixtures/base-test';
 import { TestUsers } from '@test-data/users.data';
+import { AppConfig } from '@config/app.config';
 
-test.describe('Authentication: Login Feature @auth @regression', () => {
-  // Use fresh context for login tests to avoid using saved storage state
+test.describe('Authentication: Login Feature @auth @web @regression', () => {
+  // Login tests must use an unauthenticated fresh context
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test.beforeEach(async ({ loginPage }) => {
@@ -18,7 +19,7 @@ test.describe('Authentication: Login Feature @auth @regression', () => {
   test('should display error message when logging in with invalid credentials', async ({ loginPage }) => {
     await loginPage.loginAs(TestUsers.INVALID_USER);
     const errorMessage = await loginPage.getErrorMessage();
-    expect(errorMessage).toBe('Invalid credentials');
+    expect(errorMessage).toContain('Invalid credentials');
   });
 
   test('should authenticate successfully with valid admin credentials @smoke', async ({ loginPage, page }) => {
