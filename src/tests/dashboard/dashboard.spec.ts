@@ -1,12 +1,12 @@
 import { test, expect } from '@fixtures/base-test';
 import { SidebarMenu } from '@constants/navigation';
 
-test.describe('Dashboard: Core Functionality & Layout', () => {
+test.describe('Dashboard: Core Functionality & Layout @dashboard @regression', () => {
   test.beforeEach(async ({ dashboardPage }) => {
     await dashboardPage.navigate();
   });
 
-  test('should display dashboard topbar and widgets', async ({ topbar, dashboardPage }) => {
+  test('should display dashboard topbar and widgets @smoke', async ({ topbar, dashboardPage }) => {
     const title = await topbar.getHeaderTitle();
     expect(title).toContain('Dashboard');
 

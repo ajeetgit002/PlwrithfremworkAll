@@ -1,10 +1,9 @@
 import { test, expect } from '@fixtures/base-test';
 import { TestUsers } from '@test-data/users.data';
 
-test.describe('Authentication: Session Management', () => {
+test.describe('Authentication: Session Management @auth @regression', () => {
   test.describe('Persistent Session Verification', () => {
-    // Verifies that the global setup storage state allows immediate dashboard access
-    test('should maintain active session and allow direct dashboard access', async ({ dashboardPage, topbar }) => {
+    test('should maintain active session and allow direct dashboard access @smoke', async ({ dashboardPage, topbar }) => {
       await dashboardPage.navigate();
 
       const headerTitle = await topbar.getHeaderTitle();
@@ -16,7 +15,6 @@ test.describe('Authentication: Session Management', () => {
   });
 
   test.describe('Logout & Session Teardown', () => {
-    // Run logout in an isolated context to avoid invalidating the shared global session cookie on the server
     test.use({ storageState: { cookies: [], origins: [] } });
 
     test('should successfully log in and log out with clean redirection', async ({ loginPage, dashboardPage, topbar, page }) => {

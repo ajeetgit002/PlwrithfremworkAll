@@ -1,12 +1,12 @@
 import { test, expect } from '@fixtures/base-test';
 import { SidebarMenu } from '@constants/navigation';
 
-test.describe('PIM: Employee Management Module', () => {
+test.describe('PIM: Employee Management Module @pim @regression', () => {
   test.beforeEach(async ({ sidebar, pimPage }) => {
     await pimPage.navigate();
   });
 
-  test('should display employee directory and table records', async ({ topbar, pimPage }) => {
+  test('should display employee directory and table records @smoke', async ({ topbar, pimPage }) => {
     const title = await topbar.getHeaderTitle();
     expect(title).toContain('PIM');
 

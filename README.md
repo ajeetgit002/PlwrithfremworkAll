@@ -6,12 +6,18 @@ An enterprise-grade, scalable, and maintainable end-to-end test automation frame
 
 ## 🏗️ Architecture Overview
 
-The framework employs a **Component-Driven Page Object Model (POM)** with clean dependency injection, strongly-typed configuration, and modular test suites:
+The framework employs a **Component-Driven Page Object Model (POM)** with clean dependency injection, strongly-typed configuration, Project Dependency authentication, and modular feature test suites:
 
 ```text
                                ┌───────────────────────────┐
-                               │   Test Suites (tests/*)   │
-                               │ auth / dashboard / pim    │
+                               │   Setup Project (setup)   │
+                               │     auth.setup.ts         │
+                               └─────────────┬─────────────┘
+                                             │ (saves session state)
+                                             ▼
+                               ┌───────────────────────────┐
+                               │ Main Test Suites (chromium)│
+                               │ auth / admin / dash / pim │
                                └─────────────┬─────────────┘
                                              │ (injects)
                                ▼─────────────┴─────────────▼
@@ -24,13 +30,13 @@ The framework employs a **Component-Driven Page Object Model (POM)** with clean 
                        ▼                                           ▼
           ┌───────────────────────────┐               ┌───────────────────────────┐
           │     Pages (pages/*)       │               │ Components (components/*) │
-          │  Login, Dashboard, PIM    │◄──────────────┤    TopBar, Sidebar        │
+          │ Login, Admin, Dash, PIM   │◄──────────────┤    TopBar, Sidebar        │
           └────────────┬──────────────┘ (reusable in) └───────────────────────────┘
                        │
                        ▼
           ┌───────────────────────────┐
           │    Core & Config Layer    │
-          │ config / constants / data │
+          │ app.config / test-data    │
           └───────────────────────────┘
 ```
 
@@ -70,29 +76,42 @@ Page Object encapsulating the authentication screen.
   * `getErrorMessage()`: Dynamically waits for and extracts error alert banner text.
   * Exposes locators as public `readonly` properties for clean assertions in tests.
 
-### 5. `DashboardPage` (`src/pages/dashboard.page.ts`)
+### 5. `AdminPage` (`src/pages/admin.page.ts`)
+Page Object encapsulating the Admin System User Management module.
+* **Dynamic Capabilities**:
+  * `searchUser(username)`: Dynamically searches system users by username.
+  * `resetSearch()`: Resets filter form and reloads table records.
+  * `getUserCount()`: Resiliently returns count of system users matching filter.
+
+### 6. `DashboardPage` (`src/pages/dashboard.page.ts`)
 Page Object encapsulating dashboard widgets and overview metrics.
 * **Dynamic Capabilities**:
   * Integrates `TopBarComponent` and `SidebarComponent` via composition (`this.topbar`, `this.sidebar`).
   * `getWidgetCount()`: Dynamically evaluates the number of widgets and cards rendered for the user.
 
-### 6. `PimPage` (`src/pages/pim.page.ts`)
+### 7. `PimPage` (`src/pages/pim.page.ts`)
 Page Object encapsulating Employee Management (PIM) directory and search operations.
 * **Dynamic Capabilities**:
   * `searchByName(name)`: Dynamically searches for any employee record.
   * `getRowCount()`: Dynamically evaluates the number of rows returned in the employee data table.
 
-### 7. `PlaywrightUtils` (`src/utils/PlaywrightUtils.ts`)
+### 8. `ApiClient` (`src/utils/api-client.ts`)
+Reusable HTTP client wrapper around Playwright `APIRequestContext`.
+* **Dynamic Capabilities**:
+  * Provides `get()`, `post()`, `put()`, `delete()` with structured step logging and error handling.
+  * Enables fast API-level data seeding, health checks, and response assertions.
+
+### 9. `PlaywrightUtils` (`src/utils/PlaywrightUtils.ts`)
 General-purpose dynamic web action and locator utility.
 * **Dynamic Capabilities**:
   * `safeClick(locator)`: Automatically scrolls into view and checks visibility before clicking any dynamic locator.
   * `clearAndFill(locator, value)`: Clears and populates input fields dynamically.
   * `waitForApiResponse(pattern)`: Dynamically intercepts and validates network API responses.
 
-### 8. `base-test` Custom Fixture Engine (`src/fixtures/base-test.ts`)
+### 10. `base-test` Custom Fixture Engine (`src/fixtures/base-test.ts`)
 Dynamic dependency injection engine.
 * **Dynamic Capabilities**:
-  * Instantiates and injects all page objects and shared components on-demand per test worker.
+  * Instantiates and injects all page objects, components, and `apiClient` on-demand per test worker.
   * Eliminates manual `new PageObject(page)` boilerplate across test files.
   * Automatically logs scenario startup and completion timestamps.
 
@@ -114,18 +133,21 @@ src/
 ├── pages/               # Feature Page Objects inheriting from BasePage
 │   ├── base.page.ts
 │   ├── login.page.ts
+│   ├── admin.page.ts
 │   ├── dashboard.page.ts
 │   └── pim.page.ts
 ├── test-data/           # Strongly-typed test datasets and user factories
 │   └── users.data.ts
 ├── fixtures/            # Custom Playwright fixtures for zero-boilerplate tests
 │   └── base-test.ts
-├── utils/               # Structured Logger, Safe WebActions, and Helpers
+├── utils/               # Structured Logger, Safe WebActions, and ApiClient
 │   ├── logger.ts
+│   ├── api-client.ts
 │   └── PlaywrightUtils.ts
 ├── tests/               # Feature-organized test suites
 │   ├── auth.setup.ts    # Official Playwright Project Dependency auth setup
 │   ├── auth/            # Login and session verification specs
+│   ├── admin/           # Admin system user management specs
 │   ├── dashboard/       # Dashboard layout and navigation specs
 │   └── pim/             # Employee management module specs
 └── playwright.config.ts # Playwright project dependency config
@@ -133,125 +155,35 @@ src/
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Smart Test Runner Commands
 
-### 1. Install Dependencies
-```bash
-npm install
-```
+Run tests by category, module, or mode using predefined NPM scripts:
 
-### 2. Run All Tests
 ```bash
+# Run Full Test Suite
 npm test
+
+# Run Fast Smoke Test Suite (@smoke tagged tests)
+npm run test:smoke
+
+# Run Full Regression Suite (@regression tagged tests)
+npm run test:regression
+
+# Run Specific Feature Modules
+npm run test:auth       # Run Authentication tests
+npm run test:admin      # Run Admin module tests
+npm run test:dashboard  # Run Dashboard tests
+npm run test:pim        # Run PIM employee tests
+
+# Interactive & Debug Modes
+npm run test:ui         # Playwright Interactive UI Mode
+npm run test:headed     # Headed browser execution
+npm run test:debug      # Step-by-step debugger
+
+# Code Quality & Reports
+npm run lint            # TypeScript compilation check (0 errors)
+npm run report          # Open HTML Test Report
 ```
-
-### 3. Run Specific Feature Suite
-```bash
-# Run Authentication tests
-npx playwright test src/tests/auth
-
-# Run Dashboard tests
-npx playwright test src/tests/dashboard
-
-# Run PIM Employee tests
-npx playwright test src/tests/pim
-```
-
-### 4. Interactive Debugging & UI Modes
-```bash
-# Run tests with interactive Playwright UI
-npm run test:ui
-
-# Run tests in headed browser mode
-npm run test:headed
-
-# Run tests in Playwright step-by-step debugger
-npm run test:debug
-```
-
-### 5. View Test Report
-```bash
-npm run report
-```
-
----
-
-## 🧑‍💻 How to Extend the Framework
-
-### 1. How to Add a New Page Object
-Create a new file in `src/pages/` inheriting from `BasePage`:
-
-```typescript
-// src/pages/admin.page.ts
-import { Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { TopBarComponent } from '@components/topbar.component';
-import { SidebarComponent } from '@components/sidebar.component';
-import { Routes } from '@constants/routes';
-
-export class AdminPage extends BasePage {
-  readonly topbar: TopBarComponent;
-  readonly sidebar: SidebarComponent;
-  readonly addUserButton: Locator;
-
-  constructor(page: Page) {
-    super(page);
-    this.topbar = new TopBarComponent(page);
-    this.sidebar = new SidebarComponent(page);
-    this.addUserButton = page.locator('button:has-text("Add")');
-  }
-
-  async navigate(): Promise<void> {
-    await this.goto(Routes.ADMIN.VIEW_SYSTEM_USERS);
-  }
-}
-```
-
-### 2. How to Expose the Page in Fixtures
-Add the new page to `src/fixtures/base-test.ts`:
-
-```typescript
-export const test = base.extend<{
-  adminPage: AdminPage;
-  // other pages...
-}>({
-  adminPage: async ({ page }, use) => {
-    await use(new AdminPage(page));
-  },
-});
-```
-
-### 3. How to Write a Test
-Create a spec file in `src/tests/<module>/` importing from `@fixtures/base-test`:
-
-```typescript
-// src/tests/admin/users.spec.ts
-import { test, expect } from '@fixtures/base-test';
-import { SidebarMenu } from '@constants/navigation';
-
-test.describe('Admin: System User Management', () => {
-  test('should navigate to Admin users list and display Add button', async ({ adminPage, sidebar, topbar }) => {
-    await adminPage.navigate();
-    await expect(topbar.headerTitle).toHaveText('Admin');
-    await expect(adminPage.addUserButton).toBeVisible();
-  });
-});
-```
-
----
-
-## 🎯 Best Practices for the Team
-
-1. **No Hardcoded Locators in Tests**: All locators belong in `pages/` or `components/`.
-2. **No Magic Strings**: All routes belong in `@constants/routes.ts`, and test users belong in `@test-data/users.data.ts`.
-3. **Use Shared Components**: Never re-implement Sidebar or TopBar locators inside individual pages; reuse `@components/`.
-4. **Session-Aware Testing**:
-   - Tests requiring logged-in state automatically use the persistent session.
-   - Tests verifying the login page itself (negative login, field validation) reset state via:
-     ```typescript
-     test.use({ storageState: { cookies: [], origins: [] } });
-     ```
-5. **Path Aliases**: Use configured TypeScript aliases (`@pages/*`, `@components/*`, `@config/*`, `@fixtures/*`, `@test-data/*`) instead of long relative paths like `../../../`.
 
 ---
 
@@ -278,7 +210,7 @@ export const AppConfig = {
     },
   },
 
-  // 3. Change execution timeouts here:
+  // 3. Change execution timeouts here (in ms):
   timeouts: {
     test: 45000,
     action: 15000,
@@ -293,3 +225,13 @@ You can also override these on the fly using environment variables in terminal o
 $env:BASE_URL="https://your-staging-url.com"; $env:ADMIN_USER="MyUser"; $env:ADMIN_PASSWORD="MyPassword"; npm test
 ```
 
+---
+
+## 🔄 Continuous Integration (CI/CD)
+
+The framework includes a ready-to-run GitHub Actions workflow (`.github/workflows/playwright.yml`) that:
+1. Automatically triggers on every `push` and `pull_request` to `main`.
+2. Sets up Node.js 20 with npm caching.
+3. Installs Playwright Chromium browser binaries and system dependencies.
+4. Executes the full test suite in parallel.
+5. Publishes HTML Test Reports and test failure artifacts (screenshots, traces, videos) automatically.
