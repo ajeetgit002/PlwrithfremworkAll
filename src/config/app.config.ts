@@ -8,6 +8,11 @@
 
 export const AppConfig = {
   /**
+   * Application Name Identifier
+   */
+  appName: process.env.APP_NAME ?? 'TestUM',
+
+  /**
    * Target Application URL (Change here to switch environment)
    */
   baseURL: process.env.BASE_URL ?? 'https://opensource-demo.orangehrmlive.com',

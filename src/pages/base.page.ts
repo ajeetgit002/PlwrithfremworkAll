@@ -1,4 +1,5 @@
 import { Page, Response } from '@playwright/test';
+import { AppConfig } from '@config/app.config';
 
 /**
  * BasePage
@@ -40,6 +41,13 @@ export abstract class BasePage {
    */
   getCurrentURL(): string {
     return this.page.url();
+  }
+
+  /**
+   * Get the configured Application Name identifier (e.g. TestUM)
+   */
+  getApplicationName(): string {
+    return AppConfig.appName;
   }
 
   /**
